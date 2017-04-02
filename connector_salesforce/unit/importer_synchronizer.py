@@ -294,7 +294,7 @@ def batch_import(self, model_name, backend_id, date=False):
 
 
 @with_retry_on_expiration
-def delayed_batch_import(session, model_name, backend_id, date=False):
+def delayed_batch_import(self, model_name, backend_id, date=False):
     """import all candidate Salesforce records In Odoo for a given
     backend, model and date using jobs
 
@@ -308,18 +308,18 @@ def delayed_batch_import(session, model_name, backend_id, date=False):
     :param date: Odoo date string to do past lookup
     :type date: str
     """
-    backend = session.env['connector.salesforce.backend'].browse(
-        backend_id
+    backend = self.env['connector.salesforce.backend'].browse(backend_id)
+    self.connector_env = ConnectorEnvironment(
+        backend, model_name
     )
-    connector_env = backend.get_connector_environment(model_name)
-    importer = connector_env.get_connector_unit(
+    importer = self.connector_env.get_connector_unit(
         SalesforceDelayedBatchSynchronizer
     )
     importer.run(date=date)
 
 
 @job
-def import_record(session, model_name, backend_id, salesforce_id):
+def import_record(self, model_name, backend_id, salesforce_id):
     """Import a Salesforce record in Odoo for a given
     backend, model and Salesforce uuid
 
@@ -333,11 +333,11 @@ def import_record(session, model_name, backend_id, salesforce_id):
     :param salesforce_id: the uuid of Salesforce record
     :type salesforce_id: str
     """
-    backend = session.env['connector.salesforce.backend'].browse(
-        backend_id
+    backend = self.env['connector.salesforce.backend'].browse(backend_id)
+    self.connector_env = ConnectorEnvironment(
+        backend, model_name
     )
-    connector_env = backend.get_connector_environment(model_name)
-    importer = connector_env.get_connector_unit(
+    importer = self.connector_env.get_connector_unit(
         SalesforceImporter
     )
     importer.run(salesforce_id)
@@ -346,7 +346,7 @@ def import_record(session, model_name, backend_id, salesforce_id):
 
 
 @job
-def deactivate_record(session, model_name, backend_id, salesforce_id):
+def deactivate_record(self, model_name, backend_id, salesforce_id):
     """deactivate a Salesforce record in Odoo for a given
     backend, model and Salesforce uuid
 
@@ -360,7 +360,7 @@ def deactivate_record(session, model_name, backend_id, salesforce_id):
     :param salesforce_id: the uuid of Salesforce record
     :type salesforce_id: str
     """
-    backend = session.env['connector.salesforce.backend'].browse(
+    backend = self.env['connector.salesforce.backend'].browse(
         backend_id
     )
     connector_env = backend.get_connector_environment(model_name)

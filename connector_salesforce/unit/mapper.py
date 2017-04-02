@@ -79,6 +79,9 @@ class AddressMapper(ImportMapper):
 class PriceMapper(ImportMapper):
 
     def get_currency_id(self, record):
+        return 3
+        #TODO
+        # check why CurrencyIsoCode is not present in record
         """Map the Odoo currency from the Salesforce currency code"""
         currency_iso_code = record.get('CurrencyIsoCode')
         if not currency_iso_code:

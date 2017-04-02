@@ -49,7 +49,7 @@ class SalesforcePriceBoookEntryMapping(models.Model):
         required=True,
     )
     pricelist_version_id = fields.Many2one(
-        'product.pricelist.version',
+        'product.pricelist.item',
         'Price list version',
         required=True,
     )

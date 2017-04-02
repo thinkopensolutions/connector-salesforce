@@ -3,7 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-from odoo.addons.connector.exception import MappingError
+from odoo.exceptions import Warning as MappingError
 from odoo.addons.connector.unit.mapper import mapping, only_create
 from ..backend import salesforce_backend
 from ..unit.binder import SalesforceBinder

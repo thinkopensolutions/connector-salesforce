@@ -107,8 +107,7 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
         if any(record[field] for field in shipp_fields):
             if current_partner.sf_shipping_partner_id:
                 shipp_id = current_partner.sf_shipping_partner_id.id
-                self.env['res.partner'].write(
-                    [shipp_id],
+                current_partner.sf_shipping_partner_id.write(
                     self._prepare_shipping_address_data(record,
                                                         current_partner)
                 )
@@ -119,8 +118,7 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
                 ).id
         else:
             if current_partner.sf_shipping_partner_id:
-                self.env['res.partner'].write(
-                    [current_partner.sf_shipping_partner_id.id],
+                current_partner.sf_shipping_partner_id.write(
                     {'active': False}
                 )
         return {'sf_shipping_partner_id': shipp_id}
@@ -157,8 +155,10 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
     def property_product_pricelist(self, record):
         """Map property pricelist using current backend setting"""
         currency_id = self.get_currency_id(record)
+        print "res......................",self.backend_record.sf_entry_mapping_ids
         mapping = {rec.currency_id.id: rec.pricelist_version_id.id
                    for rec in self.backend_record.sf_entry_mapping_ids}
+        print "mapping...............",mapping
         price_list_version_id = mapping.get(currency_id)
         if not price_list_version_id:
             raise MappingError(
@@ -168,7 +168,7 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
                     self.backend_record.name
                 )
             )
-        pl_model = 'product.pricelist.version'
+        pl_model = 'product.pricelist.item'
         price_list_version_record = self.env[pl_model].browse(
             price_list_version_id
         )
