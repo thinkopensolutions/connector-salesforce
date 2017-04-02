@@ -5,7 +5,7 @@
 from contextlib import nested, contextmanager
 from mock import patch, MagicMock
 
-import openerp.tests.common as test_common
+import odoo.tests.common as test_common
 
 SF_SPECS = ['query_all', 'delete', 'get', 'updated',
             'deleted', 'update', 'create', 'upsert']
@@ -71,7 +71,7 @@ def mock_simple_salesforce(response_mock):
 
     for fun in SF_SPECS:
         setattr(response_mock, fun, response_mock)
-    klass = ('openerp.addons.connector_salesforce.unit'
+    klass = ('odoo.addons.connector_salesforce.unit'
              '.rest_api_adapter.SalesforceRestAdapter')
     connection_to_patch = "%s.%s" % (klass, 'get_sf_connection')
     type_to_patch = "%s.%s" % (klass, 'get_sf_type')

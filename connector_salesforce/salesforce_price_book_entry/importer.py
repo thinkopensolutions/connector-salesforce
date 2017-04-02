@@ -3,13 +3,13 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-from openerp.addons.connector.exception import MappingError
-from openerp.addons.connector.unit.mapper import mapping, only_create
+from odoo.addons.connector.exception import MappingError
+from odoo.addons.connector.unit.mapper import mapping, only_create
 from ..backend import salesforce_backend
 from ..unit.binder import SalesforceBinder
 from ..unit.importer_synchronizer import (SalesforceDelayedBatchSynchronizer,
                                           SalesforceDirectBatchSynchronizer,
-                                          SalesforceImportSynchronizer,
+                                          SalesforceImporter,
                                           import_record)
 from ..unit.rest_api_adapter import SalesforceRestAdapter
 from ..unit.mapper import PriceMapper
@@ -17,14 +17,14 @@ _logger = logging.getLogger(__name__)
 
 
 @salesforce_backend
-class SalesforcePriceBookEntryImporter(SalesforceImportSynchronizer):
+class SalesforcePriceBookEntryImporter(SalesforceImporter):
     _model_name = 'connector.salesforce.pricebook.entry'
 
     def _to_deactivate(self):
         """Hook to check if record must be deactivated"""
         assert self.salesforce_record
         if not self.salesforce_record.get('IsActive'):
-            entry_id = self.binder.to_openerp(self.salesforce_id)
+            entry_id = self.binder.to_odoo(self.salesforce_id)
             if entry_id:
                 return True
         return False
@@ -34,7 +34,7 @@ class SalesforcePriceBookEntryImporter(SalesforceImportSynchronizer):
         In this case we unlink the existing pricelist item
         """
         assert self.salesforce_id
-        entry = self.binder.to_openerp(self.salesforce_id)
+        entry = self.binder.to_odoo(self.salesforce_id)
         entry.unlink()
 
     def _before_import(self):
@@ -46,13 +46,13 @@ class SalesforcePriceBookEntryImporter(SalesforceImportSynchronizer):
             SalesforceBinder,
             model='connector.salesforce.product'
         )
-        product = product_binder.to_openerp(
+        product = product_binder.to_odoo(
             self.salesforce_record['Product2Id']
         )
         if not product:
             if self.backend_record.sf_product_master == 'sf':
                 import_record(
-                    self.session,
+                    self,
                     'connector.salesforce.product',
                     self.backend_record.id,
                     self.salesforce_record['Product2Id']
@@ -127,7 +127,7 @@ class SalesforcePriceBookEntryMapper(PriceMapper):
             SalesforceBinder,
             model='connector.salesforce.product',
         )
-        product = product_binder.to_openerp(
+        product = product_binder.to_odoo(
             sf_product_uuid,
             unwrap=True
         )

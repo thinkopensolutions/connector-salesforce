@@ -5,7 +5,7 @@
 """Provides various date/datetime helper"""
 import datetime
 import pytz
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 def convert_to_utc_datetime_with_tz(datetime_str):

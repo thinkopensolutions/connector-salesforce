@@ -3,8 +3,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from collections import namedtuple
-from openerp.addons.server_environment import serv_config
-from openerp import models, fields
+from odoo.addons.server_environment import serv_config
+from odoo import models, fields
 
 AuthField = namedtuple('AuthField', ['name', 'is_mandatory'])
 

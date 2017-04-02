@@ -3,14 +3,14 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
+from odoo.addons.queue_job.job import job
+from odoo.addons.connector.unit.synchronizer import Exporter
 from ..unit.rest_api_adapter import with_retry_on_expiration
 
 _logger = logging.getLogger(__name__)
 
 
-class SalesforceExportSynchronizer(ExportSynchronizer):
+class SalesforceExporter(Exporter):
     """Exporter to export an Odoo record to Salesforce.
 
     Exporting using a Salesforce external id field is supported and
@@ -22,7 +22,7 @@ class SalesforceExportSynchronizer(ExportSynchronizer):
     """
 
     def __init__(self, connector_env):
-        super(SalesforceExportSynchronizer, self).__init__(connector_env)
+        super(SalesforceExporter, self).__init__(connector_env)
         self.salesforce_id = None
         self.binding_id = None
         self.binding = None
@@ -53,7 +53,7 @@ class SalesforceExportSynchronizer(ExportSynchronizer):
         must be deactivated on Salesforce
         """
         assert self.binding
-        model = self.session.env[self.model._name]
+        model = self.env[self.model._name]
         cols = set(model._fields)
         cols.update(model._inherit_fields)
         if 'active' in cols:
@@ -66,7 +66,7 @@ class SalesforceExportSynchronizer(ExportSynchronizer):
 
         :return: an record of Odoo model base on
                  `_model_name` key
-        :rtype: :py:class:`openerp.osv.orm.BrowseRecord`
+        :rtype: :py:class:`odoo.osv.orm.BrowseRecord`
         """
         assert self.binding_id
         return self.model.browse(self.binding_id)
@@ -161,7 +161,7 @@ class SalesforceExportSynchronizer(ExportSynchronizer):
         self._export(self.binding, self.salesforce_id)
 
 
-class SalesforceBatchExportSynchronizer(ExportSynchronizer):
+class SalesforceBatchExporter(Exporter):
 
     def before_batch_export(self):
         """Hook called before a batch export"""
@@ -183,11 +183,11 @@ class SalesforceBatchExportSynchronizer(ExportSynchronizer):
         :rtype: list
         """
         if not date:
-            return self.session.env[self._model_name].search(
+            return self.env[self._model_name].search(
                 []
             )
         else:
-            return self.session.env[self._model_name].search(
+            return self.env[self._model_name].search(
                 ['|',
                  ('salesforce_sync_date', '<', date),
                  ('salesforce_sync_date', '=', False)]
@@ -212,21 +212,21 @@ class SalesforceBatchExportSynchronizer(ExportSynchronizer):
         raise NotImplementedError
 
 
-class SalesforceDelayedBatchSynchronizer(SalesforceBatchExportSynchronizer):
+class SalesforceDelayedBatchSynchronizer(SalesforceBatchExporter):
 
     def _export_record(self, binding_id):
         "Try to export an Odoo binding on Salesforce using jobs"
-        export_record.delay(self.session,
+        export_record.delay(self,
                             self.model._name,
                             self.backend_record.id,
                             binding_id)
 
 
-class SalesforceDirectBatchSynchronizer(SalesforceBatchExportSynchronizer):
+class SalesforceDirectBatchSynchronizer(SalesforceBatchExporter):
 
     def _export_record(self, binding_id):
         "Try to export an Odoo binding on Salesforce directly"
-        export_record(self.session,
+        export_record(self,
                       self.model._name,
                       self.backend_record.id,
                       binding_id)
@@ -303,7 +303,7 @@ def export_record(session, model_name, backend_id, binding_id):
     )
     connector_env = backend.get_connector_environment(model_name)
     exporter = connector_env.get_connector_unit(
-        SalesforceExportSynchronizer
+        SalesforceExporter
     )
     exporter.run(binding_id)
 
@@ -328,6 +328,6 @@ def deactivate_record(session, model_name, backend_id, binding_id):
     )
     connector_env = backend.get_connector_environment(model_name)
     exporter = connector_env.get_connector_unit(
-        SalesforceExportSynchronizer
+        SalesforceExporter
     )
     exporter.run(binding_id, force_deactivate=True)

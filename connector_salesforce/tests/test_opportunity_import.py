@@ -90,7 +90,7 @@ class OpportunityImportTest(CommonTest):
         self.assertEqual(len(imported.order_line), 1)
 
         order_line = imported.order_line[0]
-        self.assertEqual(order_line.product_id, self.product.openerp_id)
+        self.assertEqual(order_line.product_id, self.product.odoo_id)
         self.assertEqual(order_line.product_uos_qty, 2.0)
         self.assertEqual(order_line.price_unit, 100.0)
         self.assertEqual(order_line.product_uom_qty, 2.0)

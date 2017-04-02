@@ -2,13 +2,13 @@
 # Copyright 2014-2016 Camptocamp SA
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp import models, fields
+from odoo import models, fields
 from ..unit.binder import SalesforceBinder
 
 
 class SalesforceAccount(models.Model):
     _inherit = 'salesforce.binding'
-    _inherits = {'res.partner': 'openerp_id'}
+    _inherits = {'res.partner': 'odoo_id'}
     _name = 'connector.salesforce.account'
     _description = 'Import SF Account into res.partner model'
 
@@ -17,7 +17,7 @@ class SalesforceAccount(models.Model):
         'Salesforce shipping partner'
     )
 
-    openerp_id = fields.Many2one('res.partner',
+    odoo_id = fields.Many2one('res.partner',
                                  string='Partner',
                                  required=True,
                                  index=True,

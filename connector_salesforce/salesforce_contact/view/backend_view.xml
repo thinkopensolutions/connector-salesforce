@@ -7,7 +7,7 @@
       <field name="inherit_id" ref="connector_salesforce_backend_form"/>
       <field name="priority" eval="17"/>
       <field name="arch" type="xml">
-        <page string="Actions" position="inside">
+        <page name="actions" position="inside">
           <separator string="From Salesforce Contact Towards ERP"/>
           <group>
             <div>

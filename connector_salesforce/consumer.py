@@ -8,7 +8,7 @@ from .unit.exporter_synchronizer import export_record, deactivate_record
 def delay_export(session, model_name, record_id):
     """ Delay a job which export a binding record.
     :param session: current session
-    :type session: :py:class:`openerp.addons.connector.
+    :type session: :py:class:`odoo.addons.connector.
                               session.ConnectorSession`
 
     :param model_name: name of the binding model.
@@ -33,7 +33,7 @@ def delay_deactivate(session, model_name, record_id):
     """ Delay a job which deactivate a binding record.
 
     :param session: current session
-    :type session: :py:class:`openerp.addons.connector.
+    :type session: :py:class:`odoo.addons.connector.
                               session.ConnectorSession`
 
     :param model_name: name of the binding model.

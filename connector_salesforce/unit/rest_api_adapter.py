@@ -15,7 +15,7 @@ except ImportError:
     logger = logging.getLogger('ImportError')
     logger.warning('Library simple_salesforce is not available')
 
-from openerp.addons.connector.unit.backend_adapter import BackendAdapter
+from odoo.addons.connector.unit.backend_adapter import BackendAdapter
 from . import exceptions as connector_exception
 from ..lib.date_convertion import convert_to_utc_datetime_with_tz
 from . exceptions import SalesforceSessionExpiredError
@@ -141,7 +141,7 @@ class SalesforceRestAdapter(BackendAdapter):
         assert self.backend_record, 'Backend record not available'
         if self.backend_record.authentication_method == 'oauth2':
             return self._sf_from_oauth2()
-        elif self.backen_record.authentication_method == 'pwd_token':
+        elif self.backend_record.authentication_method == 'pwd_token':
             return self._sf_from_login_password()
         elif self.backend_record.authentication_method == 'ip_filtering':
             return self._sf_from_organization_id()

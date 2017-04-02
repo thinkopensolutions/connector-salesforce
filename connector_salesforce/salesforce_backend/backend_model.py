@@ -5,9 +5,10 @@
 from __future__ import absolute_import
 import simplejson
 from ..lib.oauth2_utils import SalesforceOauth2MAnager
-from openerp import models, fields, api, exceptions
-from openerp.tools.translate import _
-from openerp.addons.connector import session as csession, connector
+from odoo import models, fields, api, exceptions
+from odoo.tools.translate import _
+#from odoo.addons.connector.session import ConnectorSession
+from odoo.addons.connector.connector import ConnectorEnvironment
 from ..unit.importer_synchronizer import batch_import, delayed_batch_import
 from ..unit.exporter_synchronizer import batch_export, delayed_batch_export
 
@@ -177,16 +178,14 @@ class SalesforceBackend(models.Model):
         :type model_name: str
 
         :return: a connector environment related to model and current backend
-        :rtype: :py:class:``connector.ConnectorEnvironment``
+        :rtype: :py:class:``ConnectorEnvironment``
 
         """
-        session = csession.ConnectorSession(
-            self.env.cr,
-            self.env.uid,
-            self.env.context
-        )
-        env = connector.ConnectorEnvironment(self, session, model_name)
-        return env
+        #TODO
+        session = self.env
+        print "se..............",self
+        print "env............",self.env
+        return self
 
     @api.model
     def _get_oauth2_handler(self):
@@ -282,11 +281,7 @@ class SalesforceBackend(models.Model):
         """
         assert mode in ('direct', 'delay'), "Invalid mode"
         import_start_time = fields.Datetime.now()
-        session = csession.ConnectorSession(
-            self.env.cr,
-            self.env.uid,
-            self.env.context
-        )
+        session = self
         date = getattr(self, date_field, False) if full is False else False
         if mode == 'direct':
             batch_import(
@@ -321,11 +316,7 @@ class SalesforceBackend(models.Model):
         :rtype: str
         """
         assert mode in ['direct', 'delay'], "Invalid mode"
-        session = csession.ConnectorSession(
-            self.env.cr,
-            self.env.uid,
-            self.env.context
-        )
+        session = self
         export_start_time = fields.Datetime.now()
         date = getattr(self, date_field, False) if full is False else False
         if mode == 'direct':

@@ -4,14 +4,14 @@
 
 import logging
 from itertools import islice
-from openerp.osv import fields
-from openerp.addons.connector.exception import MappingError
-from openerp.addons.connector.unit.mapper import mapping, only_create
+from odoo import fields
+from odoo.addons.connector.exception import MappingError
+from odoo.addons.connector.unit.mapper import mapping, only_create
 from ..backend import salesforce_backend
 from ..unit.binder import SalesforceBinder
 from ..unit.importer_synchronizer import (SalesforceDelayedBatchSynchronizer,
                                           SalesforceDirectBatchSynchronizer,
-                                          SalesforceImportSynchronizer,
+                                          SalesforceImporter,
                                           ImportSkipReason,
                                           import_record)
 from ..unit.rest_api_adapter import SalesforceRestAdapter
@@ -22,7 +22,7 @@ MAX_QUERY_OPP = 5000
 
 
 @salesforce_backend
-class SalesforceOpportunityImporter(SalesforceImportSynchronizer):
+class SalesforceOpportunityImporter(SalesforceImporter):
     _model_name = 'connector.salesforce.opportunity'
 
     def _deactivate(self):
@@ -40,7 +40,7 @@ class SalesforceOpportunityImporter(SalesforceImportSynchronizer):
         # coherence and as quering if contact was updated
         # will cost more number of REST calls
         import_record(
-            self.session,
+            self,
             'connector.salesforce.account',
             self.backend_record.id,
             self.salesforce_record['AccountId']
@@ -56,7 +56,7 @@ class SalesforceOpportunityImporter(SalesforceImportSynchronizer):
         )
         for item_id in items_to_import:
             import_record(
-                self.session,
+                self,
                 'connector.salesforce.opportunity.line.item',
                 self.backend_record.id,
                 item_id
@@ -67,7 +67,7 @@ class SalesforceOpportunityImporter(SalesforceImportSynchronizer):
         If a binding exists we skip the import
         """
         assert self.salesforce_id
-        if self.binder.to_openerp(self.salesforce_id):
+        if self.binder.to_odoo(self.salesforce_id):
             return ImportSkipReason(should_skip=True,
                                     reason='Already imported')
         return ImportSkipReason(should_skip=False, reason=None)
@@ -102,7 +102,7 @@ class SalesforceOpportunityAdapter(SalesforceRestAdapter):
     def get_updated(self, start_datetime_str=None, end_datetime_str=None):
         """Override get updated to only fetch Won opportunites
         For more details have a look at :
-        :py:class:`..unit.importer_synchronizer.SalesforceImportSynchronizer`
+        :py:class:`..unit.importer_synchronizer.SalesforceImporter`
         """
         # we prefer to use standard SF getUpdated as it as a lot of
         # subtilites depending on model and redo a call
@@ -157,7 +157,7 @@ class SalesforceOpportunityMapper(PriceMapper):
                     self.backend_record.name
                 )
             )
-        model = self.session.env['product.pricelist.version']
+        model = self.env['product.pricelist.version']
         price_list_version_record = model.browse(
             price_list_version_id
         )
@@ -179,17 +179,17 @@ class SalesforceOpportunityMapper(PriceMapper):
             SalesforceBinder,
             model='connector.salesforce.account'
         )
-        account = account_binder.to_openerp(record['AccountId'])
+        account = account_binder.to_odoo(record['AccountId'])
         if not account:
             raise MappingError(
                 'Account %s does not exist' % record['AccountId']
             )
-        partner_shipping_id = account.openerp_id.id
+        partner_shipping_id = account.odoo_id.id
         if account.sf_shipping_partner_id:
             partner_shipping_id = account.sf_shipping_partner_id.id
         return {
-            'partner_id': account.openerp_id.id,
-            'partner_invoice_id': account.openerp_id.id,
+            'partner_id': account.odoo_id.id,
+            'partner_invoice_id': account.odoo_id.id,
             'partner_shipping_id': partner_shipping_id
         }
 
@@ -221,7 +221,7 @@ class SalesforceOpportunityMapper(PriceMapper):
 
 
 @salesforce_backend
-class SalesforceOpportunityLineItemImporter(SalesforceImportSynchronizer):
+class SalesforceOpportunityLineItemImporter(SalesforceImporter):
     _model_name = 'connector.salesforce.opportunity.line.item'
 
     def _to_deactivate(self):
@@ -241,13 +241,13 @@ class SalesforceOpportunityLineItemImporter(SalesforceImportSynchronizer):
             SalesforceBinder,
             model='connector.salesforce.product'
         )
-        product_id = product_binder.to_openerp(
+        product_id = product_binder.to_odoo(
             self.salesforce_record['Product2Id']
         )
         if not product_id:
             if self.backend_record.sf_product_master == 'sf':
                 import_record(
-                    self.session,
+                    self,
                     'connector.salesforce.product',
                     self.backend_record.id,
                     self.salesforce_record['Product2Id']
@@ -303,14 +303,14 @@ class SalesforceOpportunityLineItemMapper(PriceMapper):
             SalesforceBinder,
             model='connector.salesforce.product'
         )
-        bind_product = product_binder.to_openerp(
+        bind_product = product_binder.to_odoo(
             sf_product_uuid[0]
         )
         if not bind_product:
             raise MappingError(
                 'Product is not available in ERP for record %s' % record
             )
-        return {'product_id': bind_product.openerp_id.id}
+        return {'product_id': bind_product.odoo_id.id}
 
     @mapping
     def price_and_qty(self, record):
@@ -338,14 +338,14 @@ class SalesforceOpportunityLineItemMapper(PriceMapper):
             SalesforceBinder,
             model='connector.salesforce.opportunity'
         )
-        bind_opportunity = opportunity_binder.to_openerp(
+        bind_opportunity = opportunity_binder.to_odoo(
             sf_opportunity_uuid
         )
         if not bind_opportunity:
             raise MappingError(
                 'No Opportunity for item %s' % record
             )
-        return {'order_id': bind_opportunity.openerp_id.id}
+        return {'order_id': bind_opportunity.odoo_id.id}
 
     def finalize(self, map_record, values):
         """Call afer item mapping to call the on change on
@@ -355,7 +355,7 @@ class SalesforceOpportunityLineItemMapper(PriceMapper):
         # only to have access to existing SaleOrderMapper
         # So we run `onchange` on a simplified manner
         so_line_model = self.session.pool['sale.order.line']
-        sale_order = self.session.env['sale.order'].browse(
+        sale_order = self.env['sale.order'].browse(
             values['order_id']
         )
         changed_values = so_line_model.product_id_change(

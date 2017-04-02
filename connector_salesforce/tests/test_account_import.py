@@ -55,7 +55,7 @@ class AccountImportTest(CommonTest):
         self.assertTrue(shipping_partner)
         self.assertFalse(shipping_partner.is_company)
         self.assertEqual(shipping_partner.name, 'Main name')
-        self.assertEqual(shipping_partner.parent_id, imported.openerp_id)
+        self.assertEqual(shipping_partner.parent_id, imported.odoo_id)
         self.assertEqual(shipping_partner.street, 'Shipping street')
         self.assertEqual(shipping_partner.zip, 'Shipping zip')
         self.assertEqual(shipping_partner.state_id.name, 'Shipping state')

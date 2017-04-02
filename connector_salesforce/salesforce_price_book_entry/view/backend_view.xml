@@ -7,7 +7,7 @@
       <field name="inherit_id" ref="connector_salesforce_backend_form"/>
       <field name="priority" eval="20"/>
       <field name="arch" type="xml">
-        <page string="Actions" position="inside">
+        <page name="actions" position="inside">
           <br/>
           <separator string="Price Book Entries From Salesforce Towards ERP"/>
           <div>
@@ -30,7 +30,7 @@
           </group>
           <br/>
         </page>
-        <page string="Import/Export Configuration" position="inside">
+        <page name="import_export" position="inside">
           <separator string="Product Book Entry Configuration"/>
           <div>Select which ERP pricelist version must be used to store the price book entries. <br/>
           You have to select one price list version per SalesForce currency

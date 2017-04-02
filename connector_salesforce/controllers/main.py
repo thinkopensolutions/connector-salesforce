@@ -3,10 +3,10 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import simplejson
-from openerp import SUPERUSER_ID
-from openerp.tools.translate import _
-from openerp.modules.registry import RegistryManager
-from openerp import http
+from odoo import SUPERUSER_ID
+from odoo.tools.translate import _
+from odoo.modules.registry import RegistryManager
+from odoo import http
 
 
 class SalesforceOAuthController(http.Controller):

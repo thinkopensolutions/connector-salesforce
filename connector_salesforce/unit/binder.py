@@ -3,9 +3,9 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import absolute_import
-from openerp import fields
-from openerp.addons.connector.exception import ManyIDSInBackend
-from openerp.addons.connector.connector import Binder
+from odoo import fields
+from odoo.addons.connector.exception import ManyIDSInBackend
+from odoo.addons.connector.connector import Binder
 from ..backend import salesforce_backend
 
 
@@ -14,7 +14,7 @@ class SalesforceBinder(Binder):
     """ Manage bindings between Models identifier and Salesforce identifier"""
     _model_name = []
 
-    def to_openerp(self, salesforce_id, unwrap=False):
+    def to_odoo(self, salesforce_id, unwrap=False):
         """Returns the Odoo id for an external ID""
 
         :param salesforce_id: salesforce_id row unique idenifier
@@ -37,7 +37,7 @@ class SalesforceBinder(Binder):
             return None
         assert len(binding) == 1, "Several records found: %s" % binding
         if unwrap:
-            return binding.openerp_id
+            return binding.odoo_id
         else:
             return binding
 
@@ -58,7 +58,7 @@ class SalesforceBinder(Binder):
         return sf_record['salesforce_id']
 
     def to_binding(self, record):
-        """Return the binding record for a given openerp record and backend
+        """Return the binding record for a given odoo record and backend
 
         :param record: record or id of a Odoo record
         :type binding_id: record or id
@@ -69,7 +69,7 @@ class SalesforceBinder(Binder):
         sf_id = self.model.search(
             [
                 ('backend_id', '=', self.backend_record.id),
-                ('openerp_id', '=', lookup_id)
+                ('odoo_id', '=', lookup_id)
             ]
         )
         if not sf_id:

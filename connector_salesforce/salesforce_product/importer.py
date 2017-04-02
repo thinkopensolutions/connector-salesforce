@@ -3,12 +3,12 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-from openerp.addons.connector.unit.mapper import ImportMapper
-from openerp.addons.connector.unit.mapper import mapping, only_create
+from odoo.addons.connector.unit.mapper import ImportMapper
+from odoo.addons.connector.unit.mapper import mapping, only_create
 from ..backend import salesforce_backend
 from ..unit.importer_synchronizer import (SalesforceDelayedBatchSynchronizer,
                                           SalesforceDirectBatchSynchronizer,
-                                          SalesforceImportSynchronizer)
+                                          SalesforceImporter)
 
 _logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ TYPE_MAP_REGISTER = {'Service': 'service'}
 
 
 @salesforce_backend
-class SalesforceProductImporter(SalesforceImportSynchronizer):
+class SalesforceProductImporter(SalesforceImporter):
     _model_name = 'connector.salesforce.product'
 
 

@@ -5,7 +5,7 @@
       <field name="name">Salesforce backend form</field>
       <field name="model">connector.salesforce.backend</field>
       <field name="arch" type="xml">
-        <form string="Salesforce Backend">
+        <form string="Salesforce Backend" name="salesforce_backend">
           <header>
           </header>
           <sheet>
@@ -14,10 +14,10 @@
               <field name="version"/>
             </group>
             <notebook>
-              <page string="Actions">
+              <page string="Actions" name="actions">
 
               </page>
-              <page string="Authentication Configuration">
+              <page string="Authentication Configuration" name="authentication_configuration">
                 <div class="buttons">
                   <button name="redirect_to_validation_url"
                           class="oe_highlight"
@@ -38,7 +38,7 @@
                           attrs="{'invisible': [('authentication_method', '!=', 'oauth2')]}"/>
                 </div>
                 <div attrs="{'invisible': [('authentication_method', '!=', 'oauth2')]}">
-                  <separator string="Oauth2 Setup Instructions"/>
+                  <separator string="Oauth2 Setup Instructions" name="oauth2"/>
                   <p>In order to use Oauth2 you have to add a remote application in Salesforce
                   and enable Oauth login.</p>
 
@@ -97,7 +97,7 @@
                   </group>
                 </group>
               </page>
-              <page string="Import/Export Configuration">
+              <page string="Import/Export Configuration" name="import_export">
 
               </page>
             </notebook>

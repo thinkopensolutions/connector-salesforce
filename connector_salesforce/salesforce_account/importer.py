@@ -3,12 +3,12 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-from openerp.addons.connector.exception import MappingError
-from openerp.addons.connector.unit.mapper import mapping, only_create
+from odoo.addons.connector.exception import MappingError
+from odoo.addons.connector.unit.mapper import mapping, only_create
 from ..backend import salesforce_backend
 from ..unit.importer_synchronizer import (SalesforceDelayedBatchSynchronizer,
                                           SalesforceDirectBatchSynchronizer,
-                                          SalesforceImportSynchronizer)
+                                          SalesforceImporter)
 from ..unit.rest_api_adapter import SalesforceRestAdapter
 from ..unit.mapper import AddressMapper, PriceMapper
 
@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 
 
 @salesforce_backend
-class SalesforceAccountImporter(SalesforceImportSynchronizer):
+class SalesforceAccountImporter(SalesforceImporter):
     _model_name = 'connector.salesforce.account'
 
     def _after_import(self, binding):
@@ -74,7 +74,7 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
             'zip': record['ShippingPostalCode'],
             'city': record['ShippingCity'],
             'phone': record['Phone'],
-            'parent_id': partner_record.openerp_id.id,
+            'parent_id': partner_record.odoo_id.id,
             'type': 'delivery',
             'customer': True,
 
@@ -107,19 +107,19 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
         if any(record[field] for field in shipp_fields):
             if current_partner.sf_shipping_partner_id:
                 shipp_id = current_partner.sf_shipping_partner_id.id
-                self.session.env['res.partner'].write(
+                self.env['res.partner'].write(
                     [shipp_id],
                     self._prepare_shipping_address_data(record,
                                                         current_partner)
                 )
             else:
-                shipp_id = self.session.env['res.partner'].create(
+                shipp_id = self.env['res.partner'].create(
                     self._prepare_shipping_address_data(record,
                                                         current_partner)
                 ).id
         else:
             if current_partner.sf_shipping_partner_id:
-                self.session.env['res.partner'].write(
+                self.env['res.partner'].write(
                     [current_partner.sf_shipping_partner_id.id],
                     {'active': False}
                 )
@@ -169,7 +169,7 @@ class SalesforceAccountMapper(AddressMapper, PriceMapper):
                 )
             )
         pl_model = 'product.pricelist.version'
-        price_list_version_record = self.session.env[pl_model].browse(
+        price_list_version_record = self.env[pl_model].browse(
             price_list_version_id
         )
         return {'property_product_pricelist':

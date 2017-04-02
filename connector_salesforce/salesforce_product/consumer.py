@@ -2,7 +2,7 @@
 # Copyright 2014-2016 Camptocamp SA
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp.addons.connector.event import (on_record_write,
+from odoo.addons.connector.event import (on_record_write,
                                             on_record_create,
                                             on_record_unlink)
 from ..consumer import delay_export, delay_deactivate
@@ -13,7 +13,7 @@ from ..unit.binder import SalesforceBinder
 def export_sf_product(session, model_name, record_id, vals=None):
     """ Delay a job which export a product binding record.
     :param session: current session
-    :type session: :py:class:`openerp.addons.connector.
+    :type session: :py:class:`odoo.addons.connector.
                               session.ConnectorSession`
 
     :param model_name: name of the binding model.
@@ -36,7 +36,7 @@ def deactivate_product(session, model_name, record_id):
     on Salesforce
 
     :param session: current session
-    :type session: :py:class:`openerp.addons.connector.
+    :type session: :py:class:`odoo.addons.connector.
                               session.ConnectorSession`
 
     :param model_name: name of the binding model.
@@ -56,7 +56,7 @@ def deactivate_product(session, model_name, record_id):
 def create_product_binding(session, model_name, record_id, vals=None):
     """Create a binding entry for newly created product
     :param session: current session
-    :type session: :py:class:`openerp.addons.connector.
+    :type session: :py:class:`odoo.addons.connector.
                               session.ConnectorSession`
 
     :param model_name: name of the binding model.
@@ -77,7 +77,7 @@ def create_product_binding(session, model_name, record_id, vals=None):
         if backend.sf_product_master == 'erp':
             session.env[sf_product_model].create(
                 {'backend_id': backend.id,
-                 'openerp_id': record.id}
+                 'odoo_id': record.id}
             )
 
 
@@ -86,7 +86,7 @@ def export_product(session, model_name, record_id, vals=None):
     """ Delay a job which export a binding record
     when related product is edited
     :param session: current session
-    :type session: :py:class:`openerp.addons.connector.
+    :type session: :py:class:`odoo.addons.connector.
                               session.ConnectorSession`
 
     :param model_name: name of the binding model.

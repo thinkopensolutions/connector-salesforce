@@ -2,7 +2,7 @@
 # Copyright 2014-2016 Camptocamp SA
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp import models, fields, api
+from odoo import models, fields, api
 
 
 class SalesforceOpportunityBackend(models.Model):
@@ -14,7 +14,7 @@ class SalesforceOpportunityBackend(models.Model):
     )
 
     sf_sales_team_id = fields.Many2one(
-        'crm.case.section',
+        'crm.team',
         'Sales team to be used',
         required=True,
     )

@@ -2,8 +2,8 @@
 # Copyright 2014-2016 Camptocamp SA
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from openerp.addons.connector.unit.mapper import ImportMapper
-from openerp.addons.connector.exception import MappingError
+from odoo.addons.connector.unit.mapper import ImportMapper
+from odoo.addons.connector.exception import MappingError
 
 
 class AddressMapper(ImportMapper):
@@ -15,7 +15,7 @@ class AddressMapper(ImportMapper):
         state_name = record.get(state_key)
         if not state_name:
             return False
-        state = self.session.env['res.country.state'].search(
+        state = self.env['res.country.state'].search(
             [('name', '=', state_name)],
             limit=1,
         )
@@ -24,7 +24,7 @@ class AddressMapper(ImportMapper):
         else:
             country_id = self._country_id(record, country_key)
             if country_id:
-                return self.session.env['res.country.state'].create(
+                return self.env['res.country.state'].create(
                     {'name': state_name,
                      'code': state_name[0:3],
                      'country_id': country_id}
@@ -36,7 +36,7 @@ class AddressMapper(ImportMapper):
         country_code = record.get(country_key)
         if not country_code:
             return False
-        country = self.session.env['res.country'].search(
+        country = self.env['res.country'].search(
             [('code', '=', country_code)]
         )
         # we tolerate the fact that country is null
@@ -62,7 +62,7 @@ class AddressMapper(ImportMapper):
         title_name = record.get(title_key)
         if not title_name:
             return False
-        title = self.session.env['res.partner.title'].search(
+        title = self.env['res.partner.title'].search(
             [('name', '=', title_name)],
         )
         if len(title) > 1:
@@ -71,7 +71,7 @@ class AddressMapper(ImportMapper):
             )
         if title:
             return title.id
-        return self.session.env['res.partner.title'].create(
+        return self.env['res.partner.title'].create(
             {'name': title_name}
         ).id
 
@@ -85,7 +85,7 @@ class PriceMapper(ImportMapper):
             raise MappingError(
                 'No currency found for: %s' % record
             )
-        currency = self.session.env['res.currency'].search(
+        currency = self.env['res.currency'].search(
             [('name', '=ilike', currency_iso_code)]
         )
         if not currency:

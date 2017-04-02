@@ -4,9 +4,10 @@
 
 import logging
 from collections import namedtuple
-from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.unit.synchronizer import ImportSynchronizer
-from openerp.addons.connector.exception import IDMissingInBackend
+from odoo.addons.queue_job.job import job
+from odoo.addons.connector.unit.synchronizer import Importer
+from odoo.addons.connector.exception import IDMissingInBackend
+from odoo.addons.connector.connector import ConnectorEnvironment
 from ..unit.rest_api_adapter import with_retry_on_expiration
 
 _logger = logging.getLogger(__name__)
@@ -14,11 +15,11 @@ _logger = logging.getLogger(__name__)
 ImportSkipReason = namedtuple('SkipReason', ['should_skip', 'reason'])
 
 
-class SalesforceImportSynchronizer(ImportSynchronizer):
+class SalesforceImporter(Importer):
 
     def __init__(self, connector_env):
         """Constructor"""
-        super(SalesforceImportSynchronizer, self).__init__(connector_env)
+        super(SalesforceImporter, self).__init__(connector_env)
         self.salesforce_id = None
         self.salesforce_record = None
 
@@ -59,7 +60,7 @@ class SalesforceImportSynchronizer(ImportSynchronizer):
                 'Model %s does not have an active field. '
                 'custom _deactivate must be implemented'
             )
-        current_id = self.binder.to_openerp(self.salesforce_id)
+        current_id = self.binder.to_odoo(self.salesforce_id)
         self.model.browse(current_id).write({'active': False})
 
     def _get_record(self, raise_error=False):
@@ -197,14 +198,14 @@ class SalesforceImportSynchronizer(ImportSynchronizer):
             self._deactivate()
             return
         self._before_import()
-        binding = self.binder.to_openerp(self.salesforce_id)
+        binding = self.binder.to_odoo(self.salesforce_id)
         if binding:
             binding.ensure_one()
         # calls _after_import
         self._import(binding)
 
 
-class SalesforceBatchSynchronizer(ImportSynchronizer):
+class SalesforceBatchSynchronizer(Importer):
 
     def before_batch_import(self):
         pass
@@ -239,14 +240,14 @@ class SalesforceDelayedBatchSynchronizer(SalesforceBatchSynchronizer):
 
     def _import_record(self, salesforce_id):
         "Try to import a Salesforce record in Odoo using Jobs"
-        import_record.delay(self.session,
+        import_record.delay(self,
                             self.model._name,
                             self.backend_record.id,
                             salesforce_id)
 
     def _deactivate_record(self, salesforce_id):
         "Try to deactivate a Salesforce deactivated record in Odoo using Jobs"
-        deactivate_record.delay(self.session,
+        deactivate_record.delay(self,
                                 self.model._name,
                                 self.backend_record.id,
                                 salesforce_id)
@@ -256,21 +257,21 @@ class SalesforceDirectBatchSynchronizer(SalesforceBatchSynchronizer):
 
     def _import_record(self, salesforce_id):
         "Try to import a Salesforce record in Odoo directly"
-        import_record(self.session,
+        import_record(self,
                       self.model._name,
                       self.backend_record.id,
                       salesforce_id)
 
     def _deactivate_record(self, salesforce_id):
         "Try to deactivate a Salesforce deactivated record directly"
-        deactivate_record(self.session,
+        deactivate_record(self,
                           self.model._name,
                           self.backend_record.id,
                           salesforce_id)
 
 
 @with_retry_on_expiration
-def batch_import(session, model_name, backend_id, date=False):
+def batch_import(self, model_name, backend_id, date=False):
     """import all candidate Salesforce records In Odoo for a given
     backend, model and date
 
@@ -284,13 +285,11 @@ def batch_import(session, model_name, backend_id, date=False):
     :param date: Odoo date string to do past lookup
     :type date: str
     """
-    backend = session.env['connector.salesforce.backend'].browse(
-        backend_id
+    backend = self
+    self.connector_env = ConnectorEnvironment(
+        backend, model_name
     )
-    connector_env = backend.get_connector_environment(model_name)
-    importer = connector_env.get_connector_unit(
-        SalesforceDirectBatchSynchronizer
-    )
+    importer = self.connector_env.get_connector_unit(SalesforceDirectBatchSynchronizer)
     importer.run(date=date)
 
 
@@ -339,7 +338,7 @@ def import_record(session, model_name, backend_id, salesforce_id):
     )
     connector_env = backend.get_connector_environment(model_name)
     importer = connector_env.get_connector_unit(
-        SalesforceImportSynchronizer
+        SalesforceImporter
     )
     importer.run(salesforce_id)
     return "%s record with Salesforce id %s imported" % (model_name,
@@ -366,7 +365,7 @@ def deactivate_record(session, model_name, backend_id, salesforce_id):
     )
     connector_env = backend.get_connector_environment(model_name)
     importer = connector_env.get_connector_unit(
-        SalesforceImportSynchronizer
+        SalesforceImporter
     )
     importer.run(salesforce_id, force_deactivate=True)
     return "%s record with Salesforce id %s deactivated" % (model_name,

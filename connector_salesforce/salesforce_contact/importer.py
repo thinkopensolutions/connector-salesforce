@@ -3,13 +3,13 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-from openerp.addons.connector.exception import MappingError
-from openerp.addons.connector.unit.mapper import mapping, only_create
+from odoo.addons.connector.exception import MappingError
+from odoo.addons.connector.unit.mapper import mapping, only_create
 from ..backend import salesforce_backend
 from ..unit.binder import SalesforceBinder
 from ..unit.importer_synchronizer import (SalesforceDelayedBatchSynchronizer,
                                           SalesforceDirectBatchSynchronizer,
-                                          SalesforceImportSynchronizer,
+                                          SalesforceImporter,
                                           import_record)
 from ..unit.rest_api_adapter import SalesforceRestAdapter
 from ..unit.mapper import AddressMapper
@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 
 
 @salesforce_backend
-class SalesforceContactImporter(SalesforceImportSynchronizer):
+class SalesforceContactImporter(SalesforceImporter):
     _model_name = 'connector.salesforce.contact'
 
     def _before_import(self):
@@ -32,12 +32,12 @@ class SalesforceContactImporter(SalesforceImportSynchronizer):
             SalesforceBinder,
             model='connector.salesforce.account'
         )
-        account = account_binder.to_openerp(
+        account = account_binder.to_odoo(
             self.salesforce_record['AccountId']
         )
         if not account:
             import_record(
-                self.session,
+                self,
                 'connector.salesforce.account',
                 self.backend_record.id,
                 self.salesforce_record['AccountId']
@@ -125,11 +125,11 @@ class SalesforceContactMapper(AddressMapper):
         )
         if not record['AccountId']:
             return
-        parent = parent_binder.to_openerp(
+        parent = parent_binder.to_odoo(
             record['AccountId']
         )
         if not parent:
             raise MappingError(
                 'No Account (parent partner) imported for Contact %s' % record
             )
-        return {'parent_id': parent.openerp_id.id}
+        return {'parent_id': parent.odoo_id.id}

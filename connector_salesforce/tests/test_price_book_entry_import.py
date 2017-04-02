@@ -50,4 +50,4 @@ class PriceBookImportTest(CommonTest):
         self.assertEqual(len(imported), 1)
         self.assertEqual(imported.price_version_id, pl_version)
         self.assertEqual(imported.price_surcharge, 200.00)
-        self.assertEqual(imported.product_id, self.product.openerp_id)
+        self.assertEqual(imported.product_id, self.product.odoo_id)
